@@ -1,0 +1,27 @@
+# Excel workbooks (local inventory data — not in repo)
+*.xlsx
+*.xls
+
+# Dependencies
+node_modules/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Backend runtime / secrets
+backend/uploads/
+backend/data/
+
+# Frontend build
+frontend/dist/
+dist/
+
+# Logs & OS
+*.log
+.DS_Store
+Thumbs.db
+
+# IDE (optional)
+.idea/

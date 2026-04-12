@@ -1,0 +1,135 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 220 20% 10%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 220 20% 10%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 20% 10%;
+
+    --primary: 220 70% 45%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 220 15% 95%;
+    --secondary-foreground: 220 20% 10%;
+
+    --muted: 220 15% 95%;
+    --muted-foreground: 220 10% 46%;
+
+    --accent: 40 90% 55%;
+    --accent-foreground: 220 20% 10%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 220 15% 90%;
+    --input: 220 15% 90%;
+    --ring: 220 70% 45%;
+
+    --radius: 0.5rem;
+
+    --sidebar-background: 220 25% 12%;
+    --sidebar-foreground: 220 15% 85%;
+    --sidebar-primary: 220 70% 55%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 220 25% 18%;
+    --sidebar-accent-foreground: 220 15% 90%;
+    --sidebar-border: 220 20% 20%;
+    --sidebar-ring: 220 70% 55%;
+
+    --gold: 40 90% 55%;
+    --gold-foreground: 40 100% 20%;
+    --success: 145 65% 42%;
+    --success-foreground: 0 0% 100%;
+  }
+
+  .dark {
+    --background: 220 25% 6%;
+    --foreground: 220 15% 90%;
+    --card: 220 25% 10%;
+    --card-foreground: 220 15% 90%;
+    --popover: 220 25% 10%;
+    --popover-foreground: 220 15% 90%;
+    --primary: 220 70% 55%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 220 20% 15%;
+    --secondary-foreground: 220 15% 90%;
+    --muted: 220 20% 15%;
+    --muted-foreground: 220 10% 55%;
+    --accent: 40 90% 55%;
+    --accent-foreground: 220 20% 10%;
+    --destructive: 0 62% 30%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 220 20% 18%;
+    --input: 220 20% 18%;
+    --ring: 220 70% 55%;
+    --sidebar-background: 220 25% 8%;
+    --sidebar-foreground: 220 15% 85%;
+    --sidebar-primary: 220 70% 55%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 220 25% 14%;
+    --sidebar-accent-foreground: 220 15% 90%;
+    --sidebar-border: 220 20% 15%;
+    --sidebar-ring: 220 70% 55%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Inter', sans-serif;
+  }
+  .font-display {
+    font-family: 'Playfair Display', serif;
+  }
+}
+
+/* Deep-link from All properties → Inventory: row pulse (3 cycles) */
+@keyframes inventory-row-highlight-pulse {
+  0%,
+  100% {
+    background-color: hsl(var(--background));
+    box-shadow: inset 0 0 0 0 hsl(var(--primary) / 0);
+  }
+  50% {
+    background-color: hsl(var(--primary) / 0.14);
+    box-shadow: inset 0 0 0 2px hsl(var(--primary) / 0.45);
+  }
+}
+
+.inventory-row-highlight-pulse {
+  animation: inventory-row-highlight-pulse 0.55s ease-in-out 3;
+}
+
+/* Garima Realty public site tokens (see garimarealty.com :root) — listings showcase only */
+.garima-showcase {
+  --primary: 37 39% 52%;
+  --primary-foreground: 0 0% 100%;
+  --ring: 37 39% 52%;
+  --accent: 37 39% 52%;
+  --accent-foreground: 0 0% 100%;
+  --foreground: 220 20% 10%;
+  --card: 0 0% 100%;
+  --card-foreground: 220 20% 10%;
+  --muted: 40 20% 94%;
+  --muted-foreground: 220 10% 42%;
+  --border: 40 15% 88%;
+  --background: 40 30% 96%;
+  --garima-gold: 37 39% 52%;
+  --garima-gold-light: 40 45% 70%;
+  --garima-gold-dark: 35 35% 38%;
+  --garima-charcoal: 220 20% 10%;
+  --garima-charcoal-mid: 220 15% 18%;
+  --garima-cream: 40 30% 96%;
+}
