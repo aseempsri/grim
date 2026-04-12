@@ -60,6 +60,11 @@ app.use((req, _res, next) => {
 
 fs.mkdirSync(uploadsDir, { recursive: true });
 app.use("/uploads", express.static(uploadsDir));
+/** Mis-copied deploys sometimes nest an extra uploads/ on disk; still serve the same URL path. */
+const uploadsDoubled = path.join(uploadsDir, "uploads");
+if (fs.existsSync(uploadsDoubled)) {
+  app.use("/uploads", express.static(uploadsDoubled));
+}
 
 function nowIso() {
   return new Date().toISOString();
