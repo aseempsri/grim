@@ -1,5 +1,6 @@
 import crypto from "node:crypto";
 import { MongoClient } from "mongodb";
+import { rewriteUploadUrl } from "./publicUrl.js";
 
 const MONGO_URI = process.env.MONGODB_URI ?? "mongodb://localhost:27017/grim";
 const DB_NAME = process.env.MONGODB_DB ?? "grim";
@@ -69,11 +70,13 @@ export function rowToProperty(row) {
   if (!row) return null;
   const id = row.id ?? row._id;
   const { _id, ...rest } = row;
+  const cover = rest.cover_image_url != null ? rewriteUploadUrl(rest.cover_image_url) : null;
   return {
     ...rest,
     id: String(id),
     boundary_wall: Boolean(row.boundary_wall),
     amenities: Array.isArray(row.amenities) ? row.amenities : [],
+    cover_image_url: cover,
   };
 }
 
@@ -85,6 +88,7 @@ export function rowToImage(row) {
     ...rest,
     id: String(id),
     is_cover: Boolean(row.is_cover),
+    image_url: rewriteUploadUrl(rest.image_url),
   };
 }
 
@@ -92,7 +96,8 @@ function agentToApi(doc) {
   if (!doc) return null;
   const id = doc.id ?? doc._id;
   const { _id, ...rest } = doc;
-  return { ...rest, id: String(id) };
+  const logo_url = rest.logo_url != null ? rewriteUploadUrl(rest.logo_url) : null;
+  return { ...rest, id: String(id), logo_url };
 }
 
 /**

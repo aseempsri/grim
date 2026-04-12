@@ -1,4 +1,5 @@
 import { connectDb } from "../store.js";
+import { rewriteUploadUrl } from "../publicUrl.js";
 
 /** Mirrors inventory collection names — keep in sync with inventoryService.js */
 const INV = {
@@ -221,14 +222,15 @@ export async function listPublishedPublicListings() {
         typeof raw.listingImageUrl === "string" && raw.listingImageUrl.trim()
           ? raw.listingImageUrl.trim()
           : null;
-      const listingImageUrls = urlsFromArr.length ? urlsFromArr : legacy ? [legacy] : [];
+      const listingImageUrlsRaw = urlsFromArr.length ? urlsFromArr : legacy ? [legacy] : [];
+      const listingImageUrls = listingImageUrlsRaw.map((u) => rewriteUploadUrl(u));
       const listingImageUrl = listingImageUrls[0] ?? null;
       const { _id: catalogKey, ...fields } = doc;
       out.push({
         catalogKey,
+        ...fields,
         listingImageUrl,
         listingImageUrls,
-        ...fields,
       });
     }
   }
@@ -256,7 +258,18 @@ export async function listCatalogListings(q = {}) {
     .toArray();
   return rows.map((r) => {
     const { _id, ...rest } = r;
-    return { catalogId: _id, ...rest };
+    const rawUrls = Array.isArray(rest.listingImageUrls)
+      ? rest.listingImageUrls.filter((u) => typeof u === "string" && u.trim())
+      : [];
+    const legacy =
+      typeof rest.listingImageUrl === "string" && rest.listingImageUrl.trim()
+        ? rest.listingImageUrl.trim()
+        : null;
+    const listingImageUrls = (rawUrls.length ? rawUrls : legacy ? [legacy] : []).map((u) =>
+      rewriteUploadUrl(u)
+    );
+    const listingImageUrl = listingImageUrls[0] ?? null;
+    return { catalogId: _id, ...rest, listingImageUrl, listingImageUrls };
   });
 }
 

@@ -9,6 +9,7 @@ import { registerInventoryRoutes } from "./inventory/routes.js";
 import { ensureInventoryIndexes } from "./inventory/inventoryService.js";
 import { registerCatalogRoutes } from "./catalog/routes.js";
 import { ensureCatalogIndexes, rebuildCatalog, listPublishedPublicListings } from "./catalog/catalogService.js";
+import { getPublicBaseUrl } from "./publicUrl.js";
 import {
   connectDb,
   listProperties,
@@ -33,7 +34,7 @@ const rootDir = path.join(__dirname, "..");
 const uploadsDir = path.join(rootDir, "uploads");
 
 const PORT = Number(process.env.PORT) || 3000;
-const PUBLIC_URL = (process.env.PUBLIC_URL || `http://localhost:${PORT}`).replace(/\/$/, "");
+const PUBLIC_URL = getPublicBaseUrl();
 
 const app = express();
 

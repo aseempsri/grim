@@ -1,5 +1,6 @@
 import crypto from "node:crypto";
 import { connectDb } from "../store.js";
+import { rewriteUploadUrl } from "../publicUrl.js";
 import { makeImportKey, payloadsEqual } from "./importKey.js";
 
 const COL = {
@@ -47,10 +48,12 @@ function listingImagesFromDoc(doc) {
       ? String(doc.listingImageUrl).trim()
       : null;
   if (arr.length) {
-    return { listingImageUrls: arr, listingImageUrl: arr[0] ?? null };
+    const urls = arr.map((u) => rewriteUploadUrl(u));
+    return { listingImageUrls: urls, listingImageUrl: urls[0] ?? null };
   }
   if (legacy) {
-    return { listingImageUrls: [legacy], listingImageUrl: legacy };
+    const one = rewriteUploadUrl(legacy);
+    return { listingImageUrls: [one], listingImageUrl: one };
   }
   return { listingImageUrls: [], listingImageUrl: null };
 }
