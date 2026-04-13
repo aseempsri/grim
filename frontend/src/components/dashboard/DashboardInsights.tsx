@@ -72,16 +72,26 @@ function MixPie({ mix }: { mix: InventoryDashboardInsights["mix"] }) {
   const config = Object.fromEntries(data.map((d, i) => [`slice${i}`, { label: d.name, color: d.fill }]));
 
   return (
-    <ChartContainer config={config} className="mx-auto aspect-square max-h-[240px] w-full">
-      <PieChart>
-        <ChartTooltip content={<ChartTooltipContent hideLabel />} />
-        <Pie data={data} dataKey="value" nameKey="name" innerRadius={52} outerRadius={86} paddingAngle={2}>
-          {data.map((_, i) => (
-            <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
-          ))}
-        </Pie>
-      </PieChart>
-    </ChartContainer>
+    <div className="relative mx-auto w-full max-w-[240px] aspect-square shrink-0">
+      <ChartContainer
+        config={config}
+        className={cn(
+          "absolute inset-0 flex h-full w-full !aspect-auto items-center justify-center text-xs",
+          "[&_.recharts-responsive-container]:h-full [&_.recharts-responsive-container]:w-full [&_.recharts-responsive-container]:max-h-full",
+          "[&_.recharts-wrapper]:h-full [&_.recharts-wrapper]:w-full [&_.recharts-wrapper]:max-h-full",
+          "[&_.recharts-surface]:block [&_svg]:block",
+        )}
+      >
+        <PieChart>
+          <ChartTooltip content={<ChartTooltipContent hideLabel />} />
+          <Pie data={data} dataKey="value" nameKey="name" innerRadius={52} outerRadius={86} paddingAngle={2}>
+            {data.map((_, i) => (
+              <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
+            ))}
+          </Pie>
+        </PieChart>
+      </ChartContainer>
+    </div>
   );
 }
 
