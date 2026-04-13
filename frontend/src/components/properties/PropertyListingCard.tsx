@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { formatIndianPrice, getPropertyTypeIcon, getPropertyTypeLabel } from "@/lib/format";
 import type { Property } from "@/types/models";
 import { cn } from "@/lib/utils";
+import { isListingVideoUrl } from "@/lib/listingMedia";
 import { Eye, EyeOff, MapPin, Pencil, Trash2 } from "lucide-react";
 
 const typeStyles: Record<string, { bar: string; badge: string; glow: string }> = {
@@ -56,11 +57,23 @@ export function PropertyListingCard({ property: p, onTogglePublish, onDeleteRequ
 
       <div className="relative aspect-[16/10] w-full overflow-hidden bg-muted">
         {p.cover_image_url ? (
-          <img
-            src={p.cover_image_url}
-            alt=""
-            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-          />
+          isListingVideoUrl(p.cover_image_url) ? (
+            <video
+              src={p.cover_image_url}
+              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+              muted
+              playsInline
+              loop
+              autoPlay
+              preload="metadata"
+            />
+          ) : (
+            <img
+              src={p.cover_image_url}
+              alt=""
+              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+            />
+          )
         ) : (
           <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-muted to-muted/50 text-6xl">
             {getPropertyTypeIcon(p.property_type)}

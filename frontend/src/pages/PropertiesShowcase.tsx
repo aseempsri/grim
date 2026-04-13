@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { useEffect, useMemo, useState } from "react";
+import { isListingVideoUrl } from "@/lib/listingMedia";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -90,6 +91,7 @@ function formatListingDate(iso: string): string {
 
 type GallerySlide =
   | { kind: "image"; src: string }
+  | { kind: "video"; src: string }
   | { kind: "placeholder"; gradient: string; emoji: string; caption: string };
 
 function effectiveListingImageUrls(item: PublicInventoryListing): string[] {
@@ -109,14 +111,16 @@ function buildGallerySlides(item: PublicInventoryListing): GallerySlide[] {
   const st = TYPE_STYLE[item.displayType] ?? TYPE_STYLE.flat;
   const urls = effectiveListingImageUrls(item);
   if (urls.length) {
-    return urls.map((src) => ({ kind: "image" as const, src }));
+    return urls.map((src) =>
+      isListingVideoUrl(src) ? { kind: "video" as const, src } : { kind: "image" as const, src }
+    );
   }
   return [
     {
       kind: "placeholder",
       gradient: st.gradient,
       emoji: st.emoji,
-      caption: "Add listing images in Garima inventory to show photos here",
+      caption: "Add listing images or videos in Garima inventory to show media here",
     },
   ];
 }
@@ -162,7 +166,7 @@ function ListingDetailModal({
   }, [carouselApi]);
 
   const gallerySlide = slides[gallerySlideIndex];
-  const showGalleryZoom = Boolean(gallerySlide?.kind === "image");
+  const showGalleryZoom = gallerySlide?.kind === "image";
   const detailSubtitleLines = item ? splitSubtitleLines(item.subtitle) : [];
 
   return (
@@ -170,10 +174,10 @@ function ListingDetailModal({
       <DialogContent
         overlayClassName="z-[100] bg-black/85 backdrop-blur-[2px]"
         className={cn(
-          "fixed z-[100] flex max-h-[96vh] w-[min(calc(100vw-1rem),3600px)] max-w-[min(calc(100vw-1rem),3600px)] translate-x-[-50%] translate-y-[-50%] flex-col gap-0 overflow-hidden rounded-2xl border-[hsl(40_15%_88%)] p-0 shadow-2xl",
+          "fixed z-[100] flex grim-dialog-max-h-screen w-[min(calc(100vw-1rem),3600px)] max-w-[min(calc(100vw-1rem),3600px)] translate-x-[-50%] translate-y-[-50%] flex-col gap-0 overflow-hidden rounded-2xl border-[hsl(40_15%_88%)] p-0 shadow-2xl",
           "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
           "data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
-          "lg:h-[min(96vh,980px)] lg:max-h-[96vh]",
+          "grim-showcase-dialog-shell",
           "[&>button]:z-[110]"
         )}
       >
@@ -309,6 +313,16 @@ function ListingDetailModal({
                                 />
                               </div>
                             </div>
+                          ) : slide.kind === "video" ? (
+                            <div className="flex min-h-0 flex-1 items-center justify-center bg-black p-2 sm:p-4">
+                              <video
+                                src={slide.src}
+                                className="max-h-[min(72vh,720px)] w-full max-w-full rounded-md object-contain"
+                                controls
+                                playsInline
+                                preload="metadata"
+                              />
+                            </div>
                           ) : (
                             <div
                               className={cn(
@@ -426,11 +440,23 @@ function ListingCard({
       <div className="relative aspect-[16/11] w-full shrink-0 overflow-hidden bg-muted">
         {hasImg ? (
           <div className="absolute inset-0 overflow-hidden" aria-hidden>
-            <img
-              src={imgUrls[0]}
-              alt=""
-              className="h-full w-full scale-[1.06] object-cover blur-[2.5px] transition duration-700 group-hover:scale-110 group-hover:blur-[1.5px]"
-            />
+            {isListingVideoUrl(imgUrls[0]) ? (
+              <video
+                src={imgUrls[0]}
+                className="h-full w-full scale-[1.06] object-cover blur-[2.5px] transition duration-700 group-hover:scale-110 group-hover:blur-[1.5px]"
+                muted
+                playsInline
+                loop
+                autoPlay
+                preload="metadata"
+              />
+            ) : (
+              <img
+                src={imgUrls[0]}
+                alt=""
+                className="h-full w-full scale-[1.06] object-cover blur-[2.5px] transition duration-700 group-hover:scale-110 group-hover:blur-[1.5px]"
+              />
+            )}
           </div>
         ) : (
           <div

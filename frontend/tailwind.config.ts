@@ -1,4 +1,6 @@
 import type { Config } from "tailwindcss";
+import plugin from "tailwindcss/plugin";
+import tailwindcssAnimate from "tailwindcss-animate";
 
 export default {
   darkMode: ["class"],
@@ -95,5 +97,11 @@ export default {
       },
     },
   },
-  plugins: [require("tailwindcss-animate")],
+  plugins: [
+    tailwindcssAnimate,
+    plugin(({ addVariant }) => {
+      addVariant("pointer-fine", "@media (pointer: fine)");
+      addVariant("pointer-coarse", "@media (pointer: coarse)");
+    }),
+  ],
 } satisfies Config;

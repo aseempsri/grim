@@ -77,14 +77,42 @@ const storage = multer.diskStorage({
     cb(null, dir);
   },
   filename: (_req, file, cb) => {
-    const ext = path.extname(file.originalname) || ".jpg";
+    let ext = path.extname(file.originalname || "").toLowerCase();
+    const mime = file.mimetype || "";
+    const allowed = new Set([
+      ".jpg",
+      ".jpeg",
+      ".png",
+      ".gif",
+      ".webp",
+      ".bmp",
+      ".avif",
+      ".mp4",
+      ".webm",
+      ".mov",
+      ".m4v",
+      ".ogv",
+    ]);
+    if (!allowed.has(ext)) {
+      if (/^video\//i.test(mime)) ext = ".mp4";
+      else ext = ".jpg";
+    }
     cb(null, `${Date.now()}${ext}`);
   },
 });
 
 const upload = multer({
   storage,
-  limits: { fileSize: 12 * 1024 * 1024 },
+  limits: { fileSize: 100 * 1024 * 1024 },
+  fileFilter: (_req, file, cb) => {
+    const mime = file.mimetype || "";
+    const name = file.originalname || "";
+    const extOk = /\.(jpe?g|png|gif|webp|bmp|avif|mp4|webm|mov|m4v|ogv)$/i.test(name);
+    if (mime === "" && extOk) return cb(null, true);
+    if (/^(image|video)\//i.test(mime)) return cb(null, true);
+    if (extOk) return cb(null, true);
+    return cb(new Error("Only image or video files are allowed"));
+  },
 });
 
 const uploadMemory = multer({
@@ -105,23 +133,42 @@ const listingImageDiskStorage = multer.diskStorage({
     cb(null, dir);
   },
   filename: (_req, file, cb) => {
-    const ext = path.extname(file.originalname || "").toLowerCase();
-    const safe = [".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp", ".avif"].includes(ext) ? ext : ".jpg";
-    cb(null, `${crypto.randomUUID()}${safe}`);
+    let ext = path.extname(file.originalname || "").toLowerCase();
+    const mime = file.mimetype || "";
+    const allowed = new Set([
+      ".jpg",
+      ".jpeg",
+      ".png",
+      ".gif",
+      ".webp",
+      ".bmp",
+      ".avif",
+      ".mp4",
+      ".webm",
+      ".mov",
+      ".m4v",
+      ".ogv",
+    ]);
+    if (!allowed.has(ext)) {
+      if (/^video\//i.test(mime)) ext = ".mp4";
+      else ext = ".jpg";
+    }
+    cb(null, `${crypto.randomUUID()}${ext}`);
   },
 });
 
 const uploadListingInventoryImage = multer({
   storage: listingImageDiskStorage,
-  limits: { fileSize: 8 * 1024 * 1024 },
+  limits: { fileSize: 80 * 1024 * 1024 },
   fileFilter: (_req, file, cb) => {
     const mime = file.mimetype || "";
     const name = file.originalname || "";
-    const extOk = /\.(jpe?g|png|gif|webp|bmp|avif)$/i.test(name);
+    const extOk = /\.(jpe?g|png|gif|webp|bmp|avif|mp4|webm|mov|m4v|ogv)$/i.test(name);
     if (mime === "" && extOk) return cb(null, true);
     if (/^image\//i.test(mime)) return cb(null, true);
+    if (/^video\//i.test(mime)) return cb(null, true);
     if (extOk) return cb(null, true);
-    return cb(new Error("Only image files (JPEG, PNG, GIF, WebP, BMP, AVIF) are allowed"));
+    return cb(new Error("Only image or video files (e.g. JPEG, PNG, WebP, MP4, WebM, MOV) are allowed"));
   },
 });
 

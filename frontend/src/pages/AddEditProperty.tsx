@@ -9,10 +9,11 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useCreateProperty, useUpdateProperty, useProperty, usePropertyImages, uploadPropertyImage, deletePropertyImage, type PropertyImage } from '@/hooks/useProperties';
 import { PROPERTY_TYPES, LISTING_TYPES, FACING_OPTIONS, FURNISHING_OPTIONS, AMENITIES_LIST, BHK_OPTIONS } from '@/lib/format';
+import { isListingVideoUrl } from '@/lib/listingMedia';
 import { toast } from 'sonner';
 import { ArrowLeft, ArrowRight, Upload, X, Star, Check, Building2 } from 'lucide-react';
 
-const STEPS = ['Basic Info', 'Specifications', 'Amenities & Features', 'Photos'];
+const STEPS = ['Basic Info', 'Specifications', 'Amenities & Features', 'Images / Video'];
 
 export default function AddEditProperty() {
   const { id } = useParams();
@@ -116,7 +117,7 @@ export default function AddEditProperty() {
 
   const handleImageUpload = useCallback(async (files: FileList | null) => {
     if (!files || !id) {
-      if (!id) toast.error('Please save the property first before uploading photos');
+      if (!id) toast.error('Please save the property first before uploading media');
       return;
     }
     setUploading(true);
@@ -125,7 +126,7 @@ export default function AddEditProperty() {
         const img = await uploadPropertyImage(file, id);
         setImages(prev => [...prev, img]);
       }
-      toast.success('Photos uploaded!');
+      toast.success('Media uploaded!');
     } catch (e: any) {
       toast.error(e.message || 'Upload failed');
     } finally {
@@ -136,7 +137,7 @@ export default function AddEditProperty() {
   const handleDeleteImage = async (img: PropertyImage) => {
     await deletePropertyImage(img);
     setImages(prev => prev.filter(i => i.id !== img.id));
-    toast.success('Photo removed');
+    toast.success('Media removed');
   };
 
   return (
@@ -420,25 +421,29 @@ export default function AddEditProperty() {
             <div className="space-y-4">
               {!isEdit && (
                 <div className="p-4 bg-muted rounded-lg text-sm text-muted-foreground">
-                  💡 Please save the property first (as draft), then come back to edit and upload photos.
+                  💡 Please save the property first (as draft), then come back to edit and upload images or videos.
                 </div>
               )}
               {isEdit && (
                 <>
                   <div className="border-2 border-dashed rounded-lg p-8 text-center">
                     <Upload className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
-                    <p className="text-sm text-muted-foreground mb-3">Upload property photos</p>
-                    <input type="file" multiple accept="image/*" className="hidden" id="photo-upload"
+                    <p className="text-sm text-muted-foreground mb-3">Upload property images and videos for the public listing</p>
+                    <input type="file" multiple accept="image/*,video/*,.mp4,.webm,.mov,.m4v" className="hidden" id="photo-upload"
                       onChange={e => handleImageUpload(e.target.files)} />
                     <Button variant="outline" onClick={() => document.getElementById('photo-upload')?.click()} disabled={uploading}>
-                      {uploading ? 'Uploading...' : 'Choose Photos'}
+                      {uploading ? 'Uploading...' : 'Upload Image/Video'}
                     </Button>
                   </div>
                   {images.length > 0 && (
                     <div className="grid grid-cols-3 gap-3">
                       {images.map((img) => (
                         <div key={img.id} className="relative group rounded-lg overflow-hidden">
-                          <img src={img.image_url} alt="" className="w-full h-32 object-cover" />
+                          {isListingVideoUrl(img.image_url) ? (
+                            <video src={img.image_url} className="w-full h-32 object-cover" muted playsInline controls preload="metadata" />
+                          ) : (
+                            <img src={img.image_url} alt="" className="w-full h-32 object-cover" />
+                          )}
                           <div className="absolute inset-0 bg-foreground/0 group-hover:bg-foreground/40 transition-colors flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100">
                             <Button size="icon" variant="secondary" className="h-7 w-7" onClick={() => handleDeleteImage(img)}>
                               <X className="h-3 w-3" />

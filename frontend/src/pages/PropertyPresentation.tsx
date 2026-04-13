@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { MapPin, Bed, Bath, Maximize, Compass, Building, Calendar, Phone, Share2, ArrowLeft, ChevronLeft, ChevronRight } from 'lucide-react';
 import { BrandLogo } from '@/components/BrandLogo';
+import { isListingVideoUrl } from '@/lib/listingMedia';
 import { useState } from 'react';
 
 export default function PropertyPresentation() {
@@ -53,8 +54,19 @@ export default function PropertyPresentation() {
       <div className="relative h-[60vh] md:h-[70vh] bg-foreground/5">
         {allImages.length > 0 ? (
           <>
-            <img src={allImages[currentImage]} alt={property.title}
-              className="w-full h-full object-cover" />
+            {isListingVideoUrl(allImages[currentImage]) ? (
+              <video
+                src={allImages[currentImage]}
+                className="w-full h-full object-cover"
+                autoPlay
+                muted
+                loop
+                playsInline
+              />
+            ) : (
+              <img src={allImages[currentImage]} alt={property.title}
+                className="w-full h-full object-cover" />
+            )}
             <div className="absolute inset-0 bg-gradient-to-t from-foreground/80 via-foreground/20 to-transparent" />
             {allImages.length > 1 && (
               <>
@@ -178,15 +190,27 @@ export default function PropertyPresentation() {
           </section>
         )}
 
-        {/* Photo Gallery */}
+        {/* Gallery */}
         {allImages.length > 1 && (
           <section>
-            <h2 className="font-display text-2xl font-bold mb-4">Photo Gallery</h2>
+            <h2 className="font-display text-2xl font-bold mb-4">Gallery</h2>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-              {allImages.map((url, i) => (
-                <img key={i} src={url} alt={`${property.title} - ${i + 1}`}
-                  className="w-full h-48 object-cover rounded-xl hover:opacity-90 transition-opacity cursor-pointer" onClick={() => setCurrentImage(i)} />
-              ))}
+              {allImages.map((url, i) =>
+                isListingVideoUrl(url) ? (
+                  <video
+                    key={i}
+                    src={url}
+                    className="w-full h-48 object-cover rounded-xl hover:opacity-90 transition-opacity cursor-pointer bg-black"
+                    muted
+                    playsInline
+                    preload="metadata"
+                    onClick={() => setCurrentImage(i)}
+                  />
+                ) : (
+                  <img key={i} src={url} alt={`${property.title} - ${i + 1}`}
+                    className="w-full h-48 object-cover rounded-xl hover:opacity-90 transition-opacity cursor-pointer" onClick={() => setCurrentImage(i)} />
+                )
+              )}
             </div>
           </section>
         )}

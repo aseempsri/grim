@@ -15,6 +15,8 @@ import { useCreateInventory, useUpdateInventory } from "@/hooks/useInventory";
 import { getApiBase, readFetchError } from "@/lib/api";
 import { toast } from "sonner";
 import { Upload, X } from "lucide-react";
+import { isListingVideoUrl } from "@/lib/listingMedia";
+
 const MAX_LISTING_IMAGES = 16;
 
 type Props = {
@@ -35,9 +37,10 @@ function listingImagesFromRow(row: AnyInventory | null): string[] {
 }
 
 /** Windows / some browsers omit `type`; rely on extension too. */
-function isProbablyImageFile(file: File): boolean {
-  if (file.type && file.type.startsWith("image/")) return true;
-  return /\.(jpe?g|png|gif|webp|bmp|avif|heic|heif)$/i.test(file.name || "");
+function isProbablyImageOrVideoFile(file: File): boolean {
+  const t = file.type || "";
+  if (t.startsWith("image/") || t.startsWith("video/")) return true;
+  return /\.(jpe?g|png|gif|webp|bmp|avif|heic|heif|mp4|webm|mov|m4v|ogv)$/i.test(file.name || "");
 }
 
 async function uploadListingImageFile(file: File): Promise<string> {
@@ -141,7 +144,7 @@ export function InventoryFormDialog({ kind, open, onOpenChange, editing }: Props
       const parsed = new URL(u);
       if (parsed.protocol !== "https:" && parsed.protocol !== "http:") throw new Error("protocol");
     } catch {
-      toast.error("Enter a valid http(s) image URL");
+      toast.error("Enter a valid http(s) image or video URL");
       return;
     }
     if (listingImageUrls.includes(u)) {
@@ -149,7 +152,7 @@ export function InventoryFormDialog({ kind, open, onOpenChange, editing }: Props
       return;
     }
     if (listingImageUrls.length >= MAX_LISTING_IMAGES) {
-      toast.error(`Maximum ${MAX_LISTING_IMAGES} images`);
+      toast.error(`Maximum ${MAX_LISTING_IMAGES} files`);
       return;
     }
     setListingImageUrls((s) => [...s, u]);
@@ -166,11 +169,11 @@ export function InventoryFormDialog({ kind, open, onOpenChange, editing }: Props
     let list = [...listingImageUrls];
     for (const file of files) {
       if (list.length >= MAX_LISTING_IMAGES) {
-        toast.error(`Maximum ${MAX_LISTING_IMAGES} images`);
+        toast.error(`Maximum ${MAX_LISTING_IMAGES} files`);
         break;
       }
-      if (!isProbablyImageFile(file)) {
-        toast.error(`${file.name} does not look like an image (use JPG, PNG, GIF, or WebP).`);
+      if (!isProbablyImageOrVideoFile(file)) {
+        toast.error(`${file.name} is not a supported image or video type.`);
         continue;
       }
       try {
@@ -178,7 +181,7 @@ export function InventoryFormDialog({ kind, open, onOpenChange, editing }: Props
         const url = await uploadListingImageFile(file);
         list = [...list, url];
         setListingImageUrls(list);
-        toast.success("Image uploaded", { description: "Remember to click Update to save." });
+        toast.success("File uploaded", { description: "Remember to click Update to save." });
       } catch (err) {
         toast.error(err instanceof Error ? err.message : "Upload failed");
       } finally {
@@ -266,7 +269,7 @@ export function InventoryFormDialog({ kind, open, onOpenChange, editing }: Props
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-lg grim-dialog-max-h-form overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{editing ? "Edit row" : "Add row"}</DialogTitle>
         </DialogHeader>
@@ -361,15 +364,15 @@ export function InventoryFormDialog({ kind, open, onOpenChange, editing }: Props
           )}
 
           <div className="space-y-3 rounded-lg border border-dashed border-primary/25 bg-muted/30 p-3">
-            <Label className="text-xs font-semibold">Customer listing images (optional)</Label>
+            <Label className="text-xs font-semibold">Customer listing images / videos (optional)</Label>
             <p className="text-[11px] leading-snug text-muted-foreground">
               Upload files or paste HTTPS URLs. Shown on the public Listings page when this row is published (eye icon).
-              Up to {MAX_LISTING_IMAGES} images — carousel uses all of them.
+              Up to {MAX_LISTING_IMAGES} files — carousel uses all of them.
             </p>
             <input
               ref={fileInputRef}
               type="file"
-              accept="image/*,.jpg,.jpeg,.png,.gif,.webp"
+              accept="image/*,video/*,.mp4,.webm,.mov,.m4v"
               multiple
               className="sr-only"
               aria-hidden
@@ -386,7 +389,7 @@ export function InventoryFormDialog({ kind, open, onOpenChange, editing }: Props
                 onClick={() => fileInputRef.current?.click()}
               >
                 <Upload className="h-4 w-4" />
-                {uploading ? "Uploading…" : "Upload images"}
+                {uploading ? "Uploading…" : "Upload Image/Video"}
               </Button>
               <span className="text-[11px] text-muted-foreground">
                 {listingImageUrls.length}/{MAX_LISTING_IMAGES}
@@ -399,12 +402,22 @@ export function InventoryFormDialog({ kind, open, onOpenChange, editing }: Props
                     key={`${url}-${index}`}
                     className="relative h-16 w-16 shrink-0 overflow-hidden rounded-md border bg-background"
                   >
-                    <img src={url} alt="" className="h-full w-full object-cover" />
+                    {isListingVideoUrl(url) ? (
+                      <video
+                        src={url}
+                        className="h-full w-full object-cover"
+                        muted
+                        playsInline
+                        preload="metadata"
+                      />
+                    ) : (
+                      <img src={url} alt="" className="h-full w-full object-cover" />
+                    )}
                     <button
                       type="button"
                       className="absolute right-0.5 top-0.5 rounded-full bg-black/65 p-0.5 text-white shadow hover:bg-black/85"
                       onClick={() => removeImageAt(index)}
-                      aria-label="Remove image"
+                      aria-label="Remove media"
                     >
                       <X className="h-3.5 w-3.5" />
                     </button>
@@ -413,7 +426,7 @@ export function InventoryFormDialog({ kind, open, onOpenChange, editing }: Props
               </div>
             ) : null}
             <div className="space-y-1.5">
-              <Label className="text-[11px] text-muted-foreground">Or paste image URL</Label>
+              <Label className="text-[11px] text-muted-foreground">Or paste image / video URL</Label>
               <div className="flex gap-2">
                 <Input
                   value={pasteUrl}

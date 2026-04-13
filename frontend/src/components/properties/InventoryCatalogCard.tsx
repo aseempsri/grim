@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { getPropertyTypeLabel, splitSubtitleLines } from "@/lib/format";
 import type { CatalogDisplayType, CatalogListing } from "@/types/catalog";
 import { cn } from "@/lib/utils";
+import { isListingVideoUrl } from "@/lib/listingMedia";
 import { ArrowUpRight, Building2, Home, MapPin, Store, Table2, TreePine, Waves } from "lucide-react";
 
 /** Matches public listing cards — dark hero, same placeholder gradients as PropertiesShowcase */
@@ -105,11 +106,23 @@ export function InventoryCatalogCard({ item: c }: Props) {
       <div className="relative aspect-[16/11] w-full shrink-0 overflow-hidden bg-muted">
         {hasImg ? (
           <div className="absolute inset-0 overflow-hidden" aria-hidden>
-            <img
-              src={c.listingImageUrl?.trim() ?? ""}
-              alt=""
-              className="h-full w-full scale-[1.06] object-cover blur-[2.5px] transition duration-700 group-hover:scale-[1.08] group-hover:blur-[1.5px]"
-            />
+            {isListingVideoUrl(c.listingImageUrl?.trim() ?? "") ? (
+              <video
+                src={c.listingImageUrl?.trim() ?? ""}
+                className="h-full w-full scale-[1.06] object-cover blur-[2.5px] transition duration-700 group-hover:scale-[1.08] group-hover:blur-[1.5px]"
+                muted
+                playsInline
+                loop
+                autoPlay
+                preload="metadata"
+              />
+            ) : (
+              <img
+                src={c.listingImageUrl?.trim() ?? ""}
+                alt=""
+                className="h-full w-full scale-[1.06] object-cover blur-[2.5px] transition duration-700 group-hover:scale-[1.08] group-hover:blur-[1.5px]"
+              />
+            )}
           </div>
         ) : (
           <div
